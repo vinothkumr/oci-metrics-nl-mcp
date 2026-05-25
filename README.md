@@ -20,5 +20,7 @@ Claude: ✓ Alarm "SAP-Salesforce message pack spike" created in compartment X.
 ```
  
 > ⚠️ Not affiliated with Oracle Corporation. Built independently using the public OCI SDK and Monitoring APIs.
+
+> Built by me, with Claude Code as a coding pair. Architecture, design decisions, and review by me; implementation accelerated by AI.
  
 ---
