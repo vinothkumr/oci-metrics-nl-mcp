@@ -4,7 +4,7 @@
 ![License](https://img.shields.io/badge/license-Apache%202.0-green)
 ![Version](https://img.shields.io/badge/version-0.2-orange)
 
-**Ask questions about OCI metrics in English. Get answers in English — and custom charts.**
+**Ask questions about OCI metrics in English. Get answers in English, skip the clicks.**
 
 An [MCP](https://modelcontextprotocol.io) server that lets Claude, and any other MCP-compatible client, query Oracle Cloud Infrastructure Monitoring metrics through natural language. Built first for Oracle Integration Cloud (OIC) — because *"which integration is burning through our message packs?"* is the question Metrics Explorer cannot answer in fewer than six clicks.
 
