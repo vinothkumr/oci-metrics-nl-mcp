@@ -20,6 +20,7 @@ Claude: ORDERS-to-ERP is your biggest consumer at 4.2M (38%), up 67% w/w —
 
 ## Contents
 
+- [Demo](#demo)
 - [Quick start](#quick-start)
 - [OCI setup](#oci-setup)
 - [Claude Desktop config](#claude-desktop-config)
@@ -30,6 +31,22 @@ Claude: ORDERS-to-ERP is your biggest consumer at 4.2M (38%), up 67% w/w —
 - [Contributing](#contributing)
 - [Disclaimer](#disclaimer)
 - [License](#license)
+
+---
+
+## Demo
+
+**1. Connected in Claude Desktop** — the server shows up under MCP servers once configured.
+
+![oci-metrics-nl-mcp connected in Claude Desktop](docs/images/01-connected.png)
+
+**2. Discover what's queryable** — *"What can I query in OCI right now?"*
+
+![Claude listing compartments and metric namespaces](docs/images/02-discover.png)
+
+**3. Ask a real question** — *"Which integration consumed the most billed messages?"* Claude writes the MQL, groups by `integrationFlowIdentifier`, ranks the results, and charts them.
+
+![Claude ranking integrations by billed message count](docs/images/03-query.png)
 
 ---
 
@@ -131,7 +148,7 @@ The server exposes four read-only tools. They're designed to be chained — disc
 |---|---|---|
 | `list_observable_resources` | — | every accessible compartment and the metric namespaces active in each |
 | `list_metric_names` | `compartment_id`, `namespace` | the metric names in that namespace (e.g. `oci_integration` → `BilledMessageCount`, `MessagesSuccessfulCount`) |
-| `list_metric_dimensions` | `compartment_id`, `namespace`, `metric_name` | each dimension key mapped to its observed values (e.g. `integrationFlowIdentifier` → `["ORDERS!01.00.0000", ...]`) |
+| `list_metric_dimensions` | `compartment_id`, `namespace`, `metric_name` | each dimension key mapped to its observed values (e.g. `integrationFlowIdentifier` → `["ORDERS-to-ERP!01.00.0000", ...]`) |
 | `query_metrics` | `compartment_id`, `namespace`, `query` (MQL), `start_time`, `end_time`, `resolution?`, `include_datapoints?` | one summarized stream per dimension combination — `min`/`max`/`mean`/`last`/`count`; raw datapoints only when `include_datapoints=true` |
 
 ### Querying with MQL
