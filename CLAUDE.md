@@ -193,6 +193,84 @@ Execute one at a time. **Stop after each. Wait for "proceed."**
 - User adds the MCP server to their Claude Desktop config, restarts Claude, asks "what can I query in OCI?", and the tool returns real data
 - This is v0.1 shipped. The user manually publishes to PyPI (or just leaves it as a GitHub repo) at their pace.
 
+✅ **v0.1 SHIPPED** — works in Claude Desktop, committed.
+
+---
+
+## v0.2 scope — three query primitives (hybrid architecture)
+
+v0.1 answered "what can I query?" (discovery at the namespace level). v0.2 lets the user
+**actually query the metrics**. Architecture decision (made with advisor + user): **hybrid** —
+expose thin capability-shaped primitives and let the LLM compose intent ("top consumers",
+"compare periods") by chaining them. No canned intent tools yet.
+
+Three new tools:
+
+| Tool | Wraps | Returns |
+|---|---|---|
+| `list_metric_names(compartment_id, namespace)` | `list_metrics` `group_by=["name"]` | sorted unique metric names in that namespace |
+| `list_metric_dimensions(compartment_id, namespace, metric_name)` | `list_metrics` + extract `.dimensions` | map of dimension key → sorted unique values |
+| `query_metrics(compartment_id, namespace, mql, start_time, end_time, resolution=None, include_datapoints=False)` | `summarize_metrics_data` | per-stream summary (dimensions + min/max/mean/last/count); raw datapoints only when `include_datapoints=True` |
+
+**Design decisions locked in:**
+- **Datapoints:** `query_metrics` returns **summarized** by default (min/max/mean/last/count per
+  stream). Raw `aggregated_datapoints` only when the LLM sets `include_datapoints=True`. Reason:
+  a 1m×7d query is ~10k points per stream — dumping that to the LLM blows the context window.
+- **MQL passthrough:** `query_metrics` takes a raw MQL `query` string (e.g.
+  ` MessagesReceived[1h].sum() `). The LLM writes MQL; we don't build a query DSL.
+- **Time-range validation (light, per advisor):** only guard the three impossibilities client-side —
+  `start >= end`, `end` in the future, span > 90 days (the absolute ceiling for any resolution). Do NOT
+  reimplement OCI's per-interval limits (1m→7d, 5m→30d, …) — the doc gives 4 discrete points, not a
+  function, and mirroring vendor rules rots. Catch the `ServiceError` from `summarize_metrics_data` and
+  surface its `.message` so the LLM can read "resolution too coarse for range" and retry.
+- **Time inputs:** `start_time` / `end_time` as ISO-8601 UTC strings. The LLM computes relative
+  ranges ("last week") itself.
+- **OIC per-integration:** achievable today via `query_metrics` + MQL `groupBy` on the integration
+  dimension — **but only when the OIC instance's aggregate-metrics flag is OFF** (then OCI Monitoring
+  carries `integrationId` + version dimensions). Document this dependency; do NOT build a separate
+  OIC-instance-API tool. The README headline example stands.
+
+**Module organization:** decide at step time with advisor — likely extract metric helpers into a new
+`oci_metrics.py` module (keep tool registration in `server.py`, since `@mcp.tool()` needs `mcp`).
+Avoid a `server.py` god-file.
+
+---
+
+## v0.2 plan — three steps (6–8). Stop after each. Wait for "proceed."
+
+### Step 6 — Discovery primitives
+**Make:**
+- `list_metric_names` and `list_metric_dimensions` tools (both wrap `list_metrics`)
+- Pydantic response models
+- HTML explainer(s) for any new/changed Python file
+
+**Done when:**
+- MCP Inspector shows real metric names + dimensions for one of the user's namespaces
+- `uv run pyright src/` clean, `uv run ruff format .` clean
+- HTML reviewed → STOP
+
+### Step 7 — query_metrics (the workhorse)
+**Make:**
+- `query_metrics` tool wrapping `summarize_metrics_data`
+- Summarized-by-default response + `include_datapoints` flag (Pydantic models)
+- Server-side validation of time span vs MQL interval max-range
+- HTML explainer
+
+**Done when:**
+- MCP Inspector runs a real MQL query against the user's tenancy and returns a summarized series
+- A `groupBy(integrationId)` OIC query returns per-integration results (if aggregate flag OFF)
+- pyright + ruff clean
+- HTML reviewed → STOP
+
+### Step 8 — Tests + README v0.2
+**Make:**
+- Extend `tests/test_smoke.py`: assert all four tools are registered (no OCI calls)
+- README: document the three new tools, an example MQL query, and the OIC aggregate-metrics-flag dependency
+
+**Done when:**
+- `uv run pytest` passes
+- README reviewed → v0.2 shipped
+
 ---
 
 ## When you're unsure
@@ -208,17 +286,18 @@ Surface the question to the user. Decide together. If permanent, edit this file.
 
 ---
 
-## Deferred to v0.2 (don't build now)
+## Deferred to v0.3+ (don't build now)
 
 - Synthetic data generator + personas
-- Intent tools (`find_top_consumers`, `compare_periods`, `explain_anomaly`)
-- Write tools + propose/confirm pattern
-- Alarms
-- `run_mql_query` escape hatch
+- Canned intent tools (`find_top_consumers`, `compare_periods`, `explain_anomaly`) — build only
+  if the LLM struggles to compose these from the v0.2 primitives
+- Alarms read tools (`list_alarms`, `get_alarm_history`)
+- Write tools + propose/confirm pattern (`create_alarm`, `post_metric_data`)
 - GitHub Actions CI / release workflows
 - Multi-Python-version testing
 
-These have designs already (see git history of this file if curious), but they're out of scope for v0.1.
+These are out of scope for v0.2. The `run_mql_query` escape hatch is effectively delivered by
+v0.2's `query_metrics` (raw MQL passthrough).
 
 ---
 

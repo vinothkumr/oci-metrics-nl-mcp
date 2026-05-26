@@ -449,3 +449,6 @@ venv/
 .env.local
 
 .vscode/extensions.json
+src/oci_metrics_nl_mcp/*.html
+tests/*.html
+scripts/*.html

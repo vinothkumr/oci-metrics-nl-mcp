@@ -8,7 +8,6 @@ import oci  # type: ignore[import-untyped]
 logger = logging.getLogger(__name__)
 
 
-
 def _load_config() -> dict:
     profile = os.environ.get("OCI_PROFILE", "DEFAULT")
     config = oci.config.from_file(profile_name=profile)
