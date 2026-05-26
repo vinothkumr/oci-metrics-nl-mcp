@@ -36,6 +36,10 @@ Claude: ORDERS-to-ERP is your biggest consumer at 4.2M (38%), up 67% w/w —
 
 ## Demo
 
+*End to end — ask a question, get an answer and a chart:*
+
+![Demo: querying OCI metrics in natural language](docs/videos/demo.gif)
+
 **1. Connected in Claude Desktop** — the server shows up under MCP servers once configured.
 
 ![oci-metrics-nl-mcp connected in Claude Desktop](docs/images/01-connected.png)

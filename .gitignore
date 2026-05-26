@@ -452,3 +452,6 @@ venv/
 src/oci_metrics_nl_mcp/*.html
 tests/*.html
 scripts/*.html
+
+# Large source recording — only the compressed docs/videos/demo.gif is committed
+docs/videos/Kapture.gif
